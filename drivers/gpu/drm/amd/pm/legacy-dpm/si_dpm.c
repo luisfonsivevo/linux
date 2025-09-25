@@ -7265,10 +7265,25 @@ static void si_parse_pplib_clock_info(struct amdgpu_device *adev,
 
 	if ((rps->class & ATOM_PPLIB_CLASSIFICATION_UI_MASK) ==
 	    ATOM_PPLIB_CLASSIFICATION_UI_PERFORMANCE) {
-		adev->pm.dpm.dyn_state.max_clock_voltage_on_ac.sclk = pl->sclk;
-		adev->pm.dpm.dyn_state.max_clock_voltage_on_ac.mclk = pl->mclk;
-		adev->pm.dpm.dyn_state.max_clock_voltage_on_ac.vddc = pl->vddc;
-		adev->pm.dpm.dyn_state.max_clock_voltage_on_ac.vddci = pl->vddci;
+		if(pl->sclk > adev->pm.dpm.dyn_state.max_clock_voltage_on_ac.sclk)
+			adev->pm.dpm.dyn_state.max_clock_voltage_on_ac.sclk = pl->sclk;
+		if(pl->mclk > adev->pm.dpm.dyn_state.max_clock_voltage_on_ac.mclk)
+			adev->pm.dpm.dyn_state.max_clock_voltage_on_ac.mclk = pl->mclk;
+		if(pl->vddc > adev->pm.dpm.dyn_state.max_clock_voltage_on_ac.vddc)
+			adev->pm.dpm.dyn_state.max_clock_voltage_on_ac.vddc = pl->vddc;
+		if(pl->vddci > adev->pm.dpm.dyn_state.max_clock_voltage_on_ac.vddci)
+			adev->pm.dpm.dyn_state.max_clock_voltage_on_ac.vddci = pl->vddci;
+	}
+	else if ((rps->class & ATOM_PPLIB_CLASSIFICATION_UI_MASK) ==
+	    ATOM_PPLIB_CLASSIFICATION_UI_BATTERY) {
+		if(pl->sclk > adev->pm.dpm.dyn_state.max_clock_voltage_on_dc.sclk)
+			adev->pm.dpm.dyn_state.max_clock_voltage_on_dc.sclk = pl->sclk;
+		if(pl->mclk > adev->pm.dpm.dyn_state.max_clock_voltage_on_dc.mclk)
+			adev->pm.dpm.dyn_state.max_clock_voltage_on_dc.mclk = pl->mclk;
+		if(pl->vddc > adev->pm.dpm.dyn_state.max_clock_voltage_on_dc.vddc)
+			adev->pm.dpm.dyn_state.max_clock_voltage_on_dc.vddc = pl->vddc;
+		if(pl->vddci > adev->pm.dpm.dyn_state.max_clock_voltage_on_dc.vddci)
+			adev->pm.dpm.dyn_state.max_clock_voltage_on_dc.vddci = pl->vddci;
 	}
 }
 
@@ -7638,7 +7653,7 @@ static int si_dpm_process_interrupt(struct amdgpu_device *adev,
 	}
 
 	if (queue_thermal)
-		schedule_work(&adev->pm.dpm.thermal.work);
+		flush_work(&adev->pm.dpm.thermal.work);
 
 	return 0;
 }
