@@ -1550,6 +1550,17 @@ static void pp_pm_compute_clocks(void *handle)
 			      NULL);
 }
 
+static void pp_dpm_notify_ac_dc(void *handle)
+{
+	struct pp_hwmgr *hwmgr = handle;
+
+	if (!hwmgr || !hwmgr->pm_en)
+		return;
+
+	if (hwmgr->hwmgr_func->notify_ac_dc)
+		hwmgr->hwmgr_func->notify_ac_dc(hwmgr);
+}
+
 static const struct amd_pm_funcs pp_dpm_funcs = {
 	.load_firmware = pp_dpm_load_fw,
 	.wait_for_fw_loading_complete = pp_dpm_fw_loading_complete,
@@ -1615,4 +1626,5 @@ static const struct amd_pm_funcs pp_dpm_funcs = {
 	.gfx_state_change_set = pp_gfx_state_change_set,
 	.get_smu_prv_buf_details = pp_get_prv_buffer_details,
 	.pm_compute_clocks = pp_pm_compute_clocks,
+	.notify_ac_dc = pp_dpm_notify_ac_dc,
 };
