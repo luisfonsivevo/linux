@@ -552,13 +552,23 @@ static int uvd_v3_1_early_init(struct amdgpu_ip_block *ip_block)
 	return 0;
 }
 
+static void uvd_v3_1_retrieve_firmware_key(struct amdgpu_device *adev)
+{
+	void *ptr;
+	uint32_t ucode_len;
+
+	ptr = adev->uvd.inst[0].cpu_addr;
+	ptr += 192 + 16;
+	memcpy(&ucode_len, ptr, 4);
+	ptr += ucode_len;
+	memcpy(&adev->uvd.keyselect, ptr, 4);
+}
+
 static int uvd_v3_1_sw_init(struct amdgpu_ip_block *ip_block)
 {
 	struct amdgpu_ring *ring;
 	struct amdgpu_device *adev = ip_block->adev;
 	int r;
-	void *ptr;
-	uint32_t ucode_len;
 
 	/* UVD TRAP */
 	r = amdgpu_irq_add_id(adev, AMDGPU_IRQ_CLIENTID_LEGACY, 124, &adev->uvd.inst->irq);
@@ -580,12 +590,7 @@ static int uvd_v3_1_sw_init(struct amdgpu_ip_block *ip_block)
 	if (r)
 		return r;
 
-	/* Retrieval firmware validate key */
-	ptr = adev->uvd.inst[0].cpu_addr;
-	ptr += 192 + 16;
-	memcpy(&ucode_len, ptr, 4);
-	ptr += ucode_len;
-	memcpy(&adev->uvd.keyselect, ptr, 4);
+	uvd_v3_1_retrieve_firmware_key(adev);
 
 	return r;
 }
@@ -785,6 +790,8 @@ static int uvd_v3_1_resume(struct amdgpu_ip_block *ip_block)
 	r = amdgpu_uvd_resume(ip_block->adev);
 	if (r)
 		return r;
+
+	uvd_v3_1_retrieve_firmware_key(ip_block->adev);
 
 	return uvd_v3_1_hw_init(ip_block);
 }
