@@ -591,6 +591,7 @@ static int uvd_v3_1_sw_init(struct amdgpu_ip_block *ip_block)
 		return r;
 
 	uvd_v3_1_retrieve_firmware_key(adev);
+	printk("%s retrieved fw key: 0x%x\n", __func__, ip_block->adev->uvd.keyselect);
 
 	return r;
 }
@@ -780,6 +781,10 @@ static int uvd_v3_1_suspend(struct amdgpu_ip_block *ip_block)
 	if (r)
 		return r;
 
+	printk("%s previous fw key: 0x%x\n", __func__, ip_block->adev->uvd.keyselect);
+	uvd_v3_1_retrieve_firmware_key(ip_block->adev);
+	printk("%s retrieved fw key: 0x%x\n", __func__, ip_block->adev->uvd.keyselect);
+
 	return amdgpu_uvd_suspend(adev);
 }
 
@@ -791,7 +796,9 @@ static int uvd_v3_1_resume(struct amdgpu_ip_block *ip_block)
 	if (r)
 		return r;
 
+	printk("%s previous fw key: 0x%x\n", __func__, ip_block->adev->uvd.keyselect);
 	uvd_v3_1_retrieve_firmware_key(ip_block->adev);
+	printk("%s retrieved fw key: 0x%x\n", __func__, ip_block->adev->uvd.keyselect);
 
 	return uvd_v3_1_hw_init(ip_block);
 }
